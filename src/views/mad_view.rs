@@ -3,6 +3,7 @@ use {
         area::Area,
         crossterm::event::KeyEvent,
         errors::Result,
+        frame::Frame,
         skin::MadSkin,
         views::TextView,
     },
@@ -42,6 +43,18 @@ impl MadView {
         text_view.scroll = self.scroll;
         text_view.write_on(w)?;
         Ok(())
+    }
+    /// render the markdown in the area into a [`Frame`],
+    /// taking the scroll into account.
+    ///
+    /// The frame can be saved and later diffed with the frame
+    /// of a new rendering to produce a minimal patch (see
+    /// [`Frame::diff`]).
+    pub fn render_frame(&self) -> Frame {
+        let text = self.skin.area_text(&self.markdown, &self.area);
+        let mut text_view = TextView::from(&self.area, &text);
+        text_view.scroll = self.scroll;
+        text_view.render_frame()
     }
     /// sets the new area. If it's the same as the precedent one,
     ///  this operation does nothing. The scroll is kept if possible.

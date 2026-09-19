@@ -14,6 +14,10 @@ use {
         },
         displayable_line::DisplayableLine,
         errors::Result,
+        frame::{
+            Frame,
+            FrameBuilder,
+        },
         text::FmtText,
         SPACE_FILLING,
     },
@@ -124,6 +128,21 @@ impl<'a, 't> TextView<'a, 't> {
             }
         }
         Ok(())
+    }
+
+    /// Render the text in the area into a [`Frame`], taking
+    /// the scroll into account.
+    ///
+    /// The frame can be saved and later diffed with the frame
+    /// of a new rendering to produce a minimal patch (see
+    /// [`Frame::diff`]). This doesn't change the behavior of
+    /// [`write_on`](Self::write_on) which still writes the
+    /// full content.
+    pub fn render_frame(&self) -> Frame {
+        let mut builder = FrameBuilder::new(self.area, self.text.skin);
+        // writing on a FrameBuilder can't fail
+        let _ = self.write_on(&mut builder);
+        builder.finish()
     }
 
     /// set the scroll position but makes it fit into allowed positions.

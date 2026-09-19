@@ -114,6 +114,7 @@ mod displayable_line;
 mod errors;
 mod events;
 mod fit;
+pub mod frame;
 mod inline;
 mod line;
 mod line_style;
@@ -157,6 +158,13 @@ pub use {
         TimedEvent,
     },
     fit::*,
+    frame::{
+        Frame,
+        FrameBuilder,
+        FrameMismatch,
+        FramePatch,
+        FRAME_FORMAT_VERSION,
+    },
     inline::FmtInline,
     line::FmtLine,
     line_style::LineStyle,

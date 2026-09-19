@@ -2,6 +2,7 @@
 
 ### next
 - the event reader thread stops after repeated read errors instead of looping at full CPU when the terminal is gone (eg closed without the process receiving a HUP), so that the application quits
+- new optional viewport frame API (`Frame`, `FrameBuilder`, `FramePatch`): render a `TextView`/`MadView` into a serializable cell frame (with geometry, skin fingerprint and format version), then compute a minimal line-level patch between two frames to avoid rewriting the whole screen on low bandwidth terminals. Frames saved with another size or skin require a full rendering. See the `frame-diff` example
 
 <a name="v0.35.4"></a>
 ### v0.35.4 - 2026-09-05
@@ -559,4 +560,3 @@ Some tools that were parts of several Termimad based applications are now shared
 - support for bullet style customization (including colors)
 - better wrapping, less frequently breaks words
 - Skin API *breaking changes* to allow for more customization
-

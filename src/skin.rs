@@ -108,6 +108,17 @@ impl Default for MadSkin {
 }
 
 impl MadSkin {
+    /// A fingerprint of this skin, suitable to detect skin
+    /// changes between two renderings of a [`Frame`](crate::Frame).
+    ///
+    /// It's stable across processes for a given termimad
+    /// version but may change when termimad is updated, in
+    /// which case saved frames simply require a full
+    /// rendering again.
+    pub fn fingerprint(&self) -> u64 {
+        crate::frame::Frame::skin_fingerprint(self)
+    }
+
     /// Build a customizable skin with no style, most useful
     /// when your application must run in no-color mode, for
     /// example when piped to a file.
