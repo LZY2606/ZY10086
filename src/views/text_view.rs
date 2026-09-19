@@ -14,6 +14,10 @@ use {
         },
         displayable_line::DisplayableLine,
         errors::Result,
+        frame::{
+            skin_fingerprint,
+            Frame,
+        },
         text::FmtText,
         SPACE_FILLING,
     },
@@ -124,6 +128,56 @@ impl<'a, 't> TextView<'a, 't> {
             }
         }
         Ok(())
+    }
+
+    /// Capture the frame which `write_on` would display: a grid of
+    /// cells covering the whole area, taking the scroll and the
+    /// scrollbar into account.
+    ///
+    /// The frame can be kept, serialized, and later diffed with the
+    /// frame of a new rendering to produce a minimal patch (see
+    /// [`FramePatch`](crate::FramePatch)).
+    pub fn frame(&self) -> Frame {
+        let mut frame = Frame::new(
+            self.area.width,
+            self.area.height,
+            skin_fingerprint(self.text.skin),
+        );
+        let scrollbar = self.scrollbar();
+        let mut lines = self.text.lines.iter().skip(self.scroll);
+        let mut width = self.area.width as usize;
+        if scrollbar.is_some() {
+            width -= 1;
+        }
+        for j in 0..self.area.height {
+            let y = self.area.top + j;
+            let mut row = String::new();
+            use std::fmt::Write as _;
+            if let Some(line) = lines.next() {
+                let dl = DisplayableLine::new(self.text.skin, line, Some(width));
+                let _ = write!(row, "{}", dl);
+            } else {
+                let _ = write!(
+                    row,
+                    "{}",
+                    self.text
+                        .skin
+                        .paragraph
+                        .compound_style
+                        .apply_to(" ".repeat(width))
+                );
+            }
+            if let Some((sctop, scbottom)) = scrollbar {
+                let styled_char = if sctop <= y && y <= scbottom {
+                    &self.text.skin.scrollbar.thumb
+                } else {
+                    &self.text.skin.scrollbar.track
+                };
+                let _ = write!(row, "{}", styled_char);
+            }
+            frame.set_row_from_ansi(j as usize, &row);
+        }
+        frame
     }
 
     /// set the scroll position but makes it fit into allowed positions.

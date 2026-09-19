@@ -3,6 +3,7 @@ use {
         area::Area,
         crossterm::event::KeyEvent,
         errors::Result,
+        frame::Frame,
         skin::MadSkin,
         views::TextView,
     },
@@ -42,6 +43,16 @@ impl MadView {
         text_view.scroll = self.scroll;
         text_view.write_on(w)?;
         Ok(())
+    }
+    /// Capture the frame which `write_on` would display, so that it
+    /// can be kept, serialized, and diffed with the frame of a later
+    /// rendering to produce a minimal patch (see
+    /// [`FramePatch`](crate::FramePatch)).
+    pub fn frame(&self) -> Frame {
+        let text = self.skin.area_text(&self.markdown, &self.area);
+        let mut text_view = TextView::from(&self.area, &text);
+        text_view.scroll = self.scroll;
+        text_view.frame()
     }
     /// sets the new area. If it's the same as the precedent one,
     ///  this operation does nothing. The scroll is kept if possible.

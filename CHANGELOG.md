@@ -2,6 +2,7 @@
 
 ### next
 - the event reader thread stops after repeated read errors instead of looping at full CPU when the terminal is gone (eg closed without the process receiving a HUP), so that the application quits
+- new optional viewport frame API for low-bandwidth terminals: `TextView::frame` and `MadView::frame` capture the rendered area into a serializable `Frame` (with size, skin fingerprint and format version), `Frame::patch_since` computes a minimal row-level `FramePatch` (cursor moves, erasures, styled spans) which can be written to the terminal or applied to a saved frame; incompatible frames (resize, skin change, version change) automatically require a full frame
 
 <a name="v0.35.4"></a>
 ### v0.35.4 - 2026-09-05
@@ -559,4 +560,3 @@ Some tools that were parts of several Termimad based applications are now shared
 - support for bullet style customization (including colors)
 - better wrapping, less frequently breaks words
 - Skin API *breaking changes* to allow for more customization
-

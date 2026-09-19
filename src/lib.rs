@@ -69,6 +69,33 @@ If you don't want to give ownership of the skin, markdown and area, you may pref
 
 You may see how to write a text viewer responding to key inputs to scroll a markdown text in [the scrollable example](https://github.com/Canop/termimad/blob/master/examples/scrollable/main.rs).
 
+# Diffing frames
+
+On low-bandwidth remote terminals, rewriting the whole area on every
+change is wasteful. The optional frame API lets you capture what a
+view renders into a serializable [`Frame`](struct.Frame.html), then
+compute a minimal row-level [`FramePatch`](struct.FramePatch.html)
+between the previous frame and the new one:
+
+```
+# use termimad::*;
+# let skin = MadSkin::default();
+# let area = Area::new(0, 0, 30, 10);
+let view = MadView::from("# title".to_string(), area.clone(), skin);
+let frame = view.frame();
+// later, after a change:
+let view = MadView::from("# title\nnew line".to_string(), area.clone(), MadSkin::default());
+let next = view.frame();
+let patch = next.patch_since(Some(&frame));
+patch.write_on(&mut std::io::stdout(), &area).unwrap();
+```
+
+A frame holds its size, a skin fingerprint and a format version, so
+a saved frame (eg restored after a reconnection) is only diffed
+against when it's compatible; otherwise the patch is a full frame.
+The default rendering methods are unchanged and no background
+thread is involved.
+
 # Templates
 
 In order to separate the rendering format from the content, the `format!` macro is not always a good solution because you may not be sure the content is free of characters which may mess the markdown.
@@ -114,6 +141,7 @@ mod displayable_line;
 mod errors;
 mod events;
 mod fit;
+mod frame;
 mod inline;
 mod line;
 mod line_style;
@@ -157,6 +185,15 @@ pub use {
         TimedEvent,
     },
     fit::*,
+    frame::{
+        skin_fingerprint,
+        Cell,
+        CellStyle,
+        Frame,
+        FramePatch,
+        PatchOp,
+        FRAME_FORMAT_VERSION,
+    },
     inline::FmtInline,
     line::FmtLine,
     line_style::LineStyle,
